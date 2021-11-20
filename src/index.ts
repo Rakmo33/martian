@@ -42,20 +42,32 @@ export function markdownToRichText(text: string): notion.RichText[] {
   const useGfmOp = useMdOp.use(gfm);
   const root = useGfmOp.parse(text);
 
-  const parseRichTextOp = parseRichText(root as unknown as md.Root);
-
+  const newLineArr: number[] = [];
+  let count = 0;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === '\n') {
+      count++;
+    } else if (count) {
+      newLineArr.push(count);
+      count = 0;
+    }
+  }
+  const parseRichTextOp = parseRichText(root as unknown as md.Root, newLineArr);
   return parseRichTextOp;
 }
 
 // const myStr = `**Hello**
 // Bye`;
 
-// const myStr2 = `**Hello**
+const myStr2 = `**Hello**
 
-// Bye`;
+
+Bye
+
+Go`;
 
 // const output = markdownToRichText(myStr);
-// const output2 = markdownToRichText(myStr2);
+const output2 = markdownToRichText(myStr2);
 
 // console.log(output);
 // console.log(output2);

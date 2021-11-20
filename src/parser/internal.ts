@@ -199,19 +199,39 @@ export function parseBlocks(
   return root.children.flatMap(item => parseNode(item, unsupported));
 }
 
-export function parseRichText(root: md.Root): notion.RichText[] {
+export function parseRichText(
+  root: md.Root,
+  newLineArr: number[]
+): notion.RichText[] {
   // if (root.children.length !== 1 || root.children[0].type !== 'paragraph') {
   //   throw new Error(`Unsupported markdown element: ${JSON.stringify(root)}`);
   // }
 
   const result: notion.RichText[] = [];
 
-  root.children.forEach(paragraph => {
+  root.children.forEach((paragraph, index) => {
     if (paragraph.type === 'paragraph') {
       const temp = paragraph.children.flatMap(child => parseInline(child));
+
+      if (index !== 0) {
+        (temp[0].text as Record<string, string>).content =
+          newLineString(newLineArr[index - 1]) +
+          (temp[0].text as Record<string, string>).content;
+      }
+
       result.push(...temp);
     }
   });
+
+  return result;
+}
+
+function newLineString(count: number) {
+  let result = '';
+
+  for (let i = 0; i < count; i++) {
+    result += '\n';
+  }
 
   return result;
 }
