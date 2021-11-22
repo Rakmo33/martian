@@ -211,6 +211,16 @@ export function parseRichText(
 
   root.children.forEach((paragraph, index) => {
     if (paragraph.type === 'paragraph') {
+      let breakCount = 0;
+      paragraph.children.forEach(child => {
+        if (child.type === 'break') {
+          breakCount++;
+        } else if (child.type === 'text') {
+          child.value = newLineString(breakCount) + child.value;
+          breakCount = 0;
+        }
+      });
+
       const temp = paragraph.children.flatMap(child => parseInline(child));
 
       if (index !== 0) {

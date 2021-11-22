@@ -48,7 +48,9 @@ export function markdownToRichText(text: string): notion.RichText[] {
     if (text[i] === '\n') {
       count++;
     } else if (count) {
-      newLineArr.push(count);
+      if (count > 1) {
+        newLineArr.push(count);
+      }
       count = 0;
     }
   }
@@ -59,12 +61,14 @@ export function markdownToRichText(text: string): notion.RichText[] {
 // const myStr = `**Hello**
 // Bye`;
 
-const myStr2 = `**Hello**
+const myStr2 = `**HELLO1**   
 
 
-Bye
+**HELLO2**    
+bye
 
-Go`;
+
+**HELLO3** `;
 
 // const output = markdownToRichText(myStr);
 const output2 = markdownToRichText(myStr2);
