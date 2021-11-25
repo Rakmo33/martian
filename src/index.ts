@@ -37,42 +37,6 @@ export function markdownToBlocks(
  * @param text any inline Markdown or GFM content
  */
 export function markdownToRichText(text: string): notion.RichText[] {
-  const unifiedOp = unified();
-  const useMdOp = unifiedOp.use(markdown);
-  const useGfmOp = useMdOp.use(gfm);
-  const root = useGfmOp.parse(text);
-
-  const newLineArr: number[] = [];
-  let count = 0;
-  for (let i = 0; i < text.length; i++) {
-    if (text[i] === '\n') {
-      count++;
-    } else if (count) {
-      if (count > 1) {
-        newLineArr.push(count);
-      }
-      count = 0;
-    }
-  }
-  const parseRichTextOp = parseRichText(root as unknown as md.Root, newLineArr);
-  return parseRichTextOp;
+  const root = unified().use(markdown).use(gfm).parse(text);
+  return parseRichText(root as unknown as md.Root, text);
 }
-
-// const myStr = `**Hello**
-// Bye`;
-
-const myStr2 = `**HELLO1**   
-
-
-**HELLO2**    
-bye
-
-
-**HELLO3** `;
-
-// const output = markdownToRichText(myStr);
-const output2 = markdownToRichText(myStr2);
-
-// console.log(output);
-// console.log(output2);
-// console.log('THE END')

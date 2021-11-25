@@ -199,49 +199,37 @@ export function parseBlocks(
   return root.children.flatMap(item => parseNode(item, unsupported));
 }
 
-export function parseRichText(
-  root: md.Root,
-  newLineArr: number[]
-): notion.RichText[] {
-  // if (root.children.length !== 1 || root.children[0].type !== 'paragraph') {
-  //   throw new Error(`Unsupported markdown element: ${JSON.stringify(root)}`);
-  // }
+export function parseRichText(root: md.Root, text: string): notion.RichText[] {
+  //Store the occurrences of multiple consecutive newline characters
+  const newLineArr = text.match(/\n\n+/g) || [];
+  const richTextArr: notion.RichText[] = [];
 
-  const result: notion.RichText[] = [];
-
-  root.children.forEach((paragraph, index) => {
-    if (paragraph.type === 'paragraph') {
-      let breakCount = 0;
-      paragraph.children.forEach(child => {
-        if (child.type === 'break') {
-          breakCount++;
-        } else if (child.type === 'text') {
-          child.value = newLineString(breakCount) + child.value;
-          breakCount = 0;
+  root.children.forEach((child, childIndex) => {
+    if (child.type === 'paragraph') {
+      //nodes with type='break' get ignored
+      //so prepending the next node with newline characters equal to the number of 'break' nodes before it
+      let newLineString = '';
+      child.children.forEach(paragraphChild => {
+        if (paragraphChild.type === 'break') {
+          newLineString += '\n';
+        } else if (paragraphChild.type === 'text') {
+          paragraphChild.value = newLineString + paragraphChild.value;
+          newLineString = '';
         }
       });
-
-      const temp = paragraph.children.flatMap(child => parseInline(child));
-
-      if (index !== 0) {
-        (temp[0].text as Record<string, string>).content =
-          newLineString(newLineArr[index - 1]) +
-          (temp[0].text as Record<string, string>).content;
+      const parsedChildren = child.children.flatMap(child =>
+        parseInline(child)
+      );
+      if (childIndex !== 0) {
+        //prepend children with number of corresponding newline characters
+        //based on occurences in original string
+        (parsedChildren[0].text as Record<string, string>).content =
+          newLineArr[childIndex - 1] +
+          (parsedChildren[0].text as Record<string, string>).content;
       }
-
-      result.push(...temp);
+      //merge all children of root into a single array 'result'
+      richTextArr.push(...parsedChildren);
     }
   });
-
-  return result;
-}
-
-function newLineString(count: number) {
-  let result = '';
-
-  for (let i = 0; i < count; i++) {
-    result += '\n';
-  }
-
-  return result;
+  return richTextArr;
 }
